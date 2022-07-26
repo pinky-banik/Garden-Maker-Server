@@ -25,6 +25,8 @@ async function run (){
         const database = client.db("Manufacturer");
         const toolsCollection = database.collection('Tools');
         const userCollection = database.collection('Users');
+        const blogsCollection = database.collection('Blogs');
+        const reviewCollection = database.collection('Review');
         const profileCollection = database.collection('Profile');
 
         //users.collection
@@ -79,16 +81,68 @@ async function run (){
             const isAdmin = user.role ==='admin';
             res.send({admin : isAdmin})
         })
+       
+
+        //review
+
+        app.post('/review', async (req, res) => {
+            const review = req.body;
+            const result = await reviewCollection.insertOne(review);
+            res.send(result);
+        });
+
+
+        app.get('/review', async (req, res) => {
+            const review = await reviewCollection.find().toArray();
+            res.send(review);
+        });
+
+        app.delete("/review/:id",async(req,res)=>{
+            const id = req.params.id;
+            const filter ={_id : ObjectId(id)};
+            const result= await reviewCollection.deleteOne(filter);
+            res.send(result);
+        })
+
+        //blogs
+
+        app.post('/blog', async (req, res) => {
+            const blog = req.body;
+            const result = await blogsCollection.insertOne(blog);
+            res.send(result);
+        });
+
+
+        app.get('/blog', async (req, res) => {
+            const blog = await blogsCollection.find().toArray();
+            res.send(blog);
+        });
+
+        app.delete("/blog/:id",async(req,res)=>{
+            const id = req.params.id;
+            const filter ={_id : ObjectId(id)};
+            const result= await blogsCollection.deleteOne(filter);
+            res.send(result);
+        })
 
 
 
-
-
-
-
-
-
-
+        app.put('/blog/:id', async (req, res) => {
+            const id = req.params.id;
+            const updateBlog = req.body;
+            const filter ={_id : ObjectId(id)};
+            const options={upsert:true};
+            const updatedDoc ={
+                $set:{
+                    title : updateBlog.title,
+                    details : updateBlog.details,
+                    img : updateBlog.img,
+                    date : updateBlog.date,
+                }
+            };
+            const result = await blogsCollection.updateOne(filter,updatedDoc,options);
+            res.send(result);
+        });
 
 
 
@@ -107,6 +161,7 @@ async function run (){
             const result = await toolsCollection.insertOne(tools);
             res.send(result);
         });
+        
         app.put('/tools/:id', async (req, res) => {
             const id = req.params.id;
             const updateTools = req.body;
