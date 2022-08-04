@@ -28,6 +28,73 @@ async function run (){
         const blogsCollection = database.collection('Blogs');
         const reviewCollection = database.collection('Review');
         const profileCollection = database.collection('Profile');
+        const ordersCollection = database.collection('Orders');
+
+
+        //orders collection
+
+        app.get("/orders",async(req,res)=>{
+            const orders= await ordersCollection.find().toArray();
+            res.send(orders);
+        })
+
+        
+        app.get("/orders/:email",async(req,res)=>{
+            const email = req.params.email;
+            const filter ={email:email};
+            const orders= await ordersCollection.find(filter).toArray();
+            res.send(orders);
+        })
+
+        app.delete("/orders/:id",async(req,res)=>{
+            const id = req.params.id;
+            const filter ={_id:ObjectId(id)};
+            const result= await ordersCollection.deleteOne(filter);
+            res.send(result);
+        })
+
+        app.put('/orders', async (req, res) => {
+            const email = req.query.email;
+            const productName = req.query.productName;
+            const order = req.body;
+            const filter = { 
+                email: email,
+                productName : productName,
+             };
+            const options = { upsert: true };
+            const updateDoc = {
+              $set: order,
+            };
+            const result = await ordersCollection.updateOne(filter, updateDoc, options);
+            // const token = jwt.sign({email:email},process.env.ACCESS_TOKEN_SECRET, { expiresIn: '1h' }); 
+            // res.send({ result,token});
+            res.send(result);
+        })
+
+        //client get with email api
+        app.get('/orders/email/productName', async (req, res)=>{
+            let query = {}
+           const email = req.query.email;
+           const productName = req.query.productName;
+           if(email){
+                query = {
+                    email : email,
+                    productName : productName,
+                };
+           }
+            const result =await ordersCollection.findOne(query);
+            res.send(result);
+        });
+
+
+        // app.post('/orders', async (req, res) => {
+        //     const order = req.body;
+        //     const result = await ordersCollection.insertOne(order);
+        //     // const token = jwt.sign({email:email},process.env.ACCESS_TOKEN_SECRET, { expiresIn: '1h' }); 
+        //     // res.send({ result,token});
+        //     res.send(result);
+        // })
+
 
         //users.collection
 
@@ -143,9 +210,14 @@ async function run (){
             const result = await blogsCollection.updateOne(filter,updatedDoc,options);
             res.send(result);
         });
+        
 
-
-
+        app.get('/blog/:id', async (req, res) => {
+            const id = req.params.id;
+            const filter ={_id:ObjectId(id)};
+            const result = await blogsCollection.findOne(filter);
+            res.send(result);
+        });
 
         // tools
 
@@ -170,7 +242,9 @@ async function run (){
             const updatedDoc ={
                 $set:{
                     name : updateTools.name,
-                    price : updateTools.price,
+                    pricePerUnit: updateTools.pricePerUnit,
+                    minOrderQuantity :updateTools.minOrderQuantity,
+                    availableQuantity : updateTools.availableQuantity,
                     img : updateTools.img,
                     details : updateTools.details,
                     catagory : updateTools.catagory,
@@ -181,9 +255,9 @@ async function run (){
             res.send(result);
         });
 
-        app.delete('/tools/:name', async (req, res) => {
-            const name = req.params.name;
-            const filter ={name:name};
+        app.delete('/tools/:id', async (req, res) => {
+            const id = req.params.id;
+            const filter ={_id:ObjectId(id)};
             const result = await toolsCollection.deleteOne(filter);
             res.send(result);
         });
