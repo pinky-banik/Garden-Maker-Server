@@ -3,6 +3,7 @@ const cors = require('cors');
 require('dotenv').config();
 const ObjectId = require('mongodb').ObjectId;
 const { MongoClient, ServerApiVersion} = require('mongodb');
+const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
 
 
 const app = express();
@@ -29,6 +30,7 @@ async function run (){
         const reviewCollection = database.collection('Review');
         const profileCollection = database.collection('Profile');
         const ordersCollection = database.collection('Orders');
+        const paymentCollection = database.collection('Payments');
 
 
         //orders collection
@@ -70,6 +72,25 @@ async function run (){
             // res.send({ result,token});
             res.send(result);
         })
+        app.patch('/orders/:id', async (req, res) => {
+            const id = req.params.id;
+            const payment = req.body;
+            const order = req.body;
+            const filter = { 
+                _id: (ObjectId(id)),
+             };
+            const updateDoc = {
+              $set: {
+                paymentStatus: "complete",
+                transecionId : order.transecionId,
+              },
+            };
+            const payments = await paymentCollection.insertOne(payment);
+            const result = await ordersCollection.updateOne(filter, updateDoc);
+            // const token = jwt.sign({email:email},process.env.ACCESS_TOKEN_SECRET, { expiresIn: '1h' }); 
+            // res.send({ result,token});
+            res.send(updateDoc);
+        });
 
         //client get with email api
         app.get('/orders/email/productName', async (req, res)=>{
@@ -85,7 +106,15 @@ async function run (){
             const result =await ordersCollection.findOne(query);
             res.send(result);
         });
+        
 
+
+        app.get("/paymentOrder/:id",async(req,res)=>{
+            const id = req.params.id;
+            const filter ={_id:ObjectId(id)};
+            const result= await ordersCollection.findOne(filter);
+            res.send(result);
+        })
 
         // app.post('/orders', async (req, res) => {
         //     const order = req.body;
@@ -94,7 +123,30 @@ async function run (){
         //     // res.send({ result,token});
         //     res.send(result);
         // })
+        
 
+
+        // create payment-intent api
+        
+        app.post("/create-payment-intent", async (req, res) => {
+            const service  = req.body;
+            const price = service.price;
+            const amount = price*100;
+          
+            // Create a PaymentIntent with the order amount and currency
+            const paymentIntent = await stripe.paymentIntents.create({
+              amount: amount,
+              currency: "usd",
+              payment_method_types:['card'],
+            //   automatic_payment_methods: {
+            //     enabled: true,
+            //   },
+            });
+          
+            res.send({
+              clientSecret: paymentIntent.client_secret,
+            });
+          });
 
         //users.collection
 
