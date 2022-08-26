@@ -31,7 +31,7 @@ async function run (){
         const profileCollection = database.collection('Profile');
         const ordersCollection = database.collection('Orders');
         const paymentCollection = database.collection('Payments');
-
+        const messageCollection = database.collection('messages');
 
         //orders collection
 
@@ -201,7 +201,27 @@ async function run (){
             res.send({admin : isAdmin})
         })
        
+        //messages
 
+        app.post('/message', async (req, res) => {
+            const message = req.body;
+            const result = await messageCollection.insertOne(message);
+            res.send(result);
+        });
+
+
+        app.get('/message', async (req, res) => {
+            const message = await messageCollection.find().toArray();
+            res.send(message);
+        });
+
+        app.delete("/message/:id",async(req,res)=>{
+            const id = req.params.id;
+            const filter ={_id : ObjectId(id)};
+            const result= await messageCollection.deleteOne(filter);
+            res.send(result);
+        })
+        
         //review
 
         app.post('/review', async (req, res) => {
@@ -324,6 +344,26 @@ async function run (){
             const name = req.params.name;
             const filter ={name:name};
             const result = await toolsCollection.findOne(filter);
+            res.send(result);
+        });
+        //history
+        app.get('/history',async(req,res)=>{
+            const query={};
+            const cursor = paymentCollection.find(query);
+            const payments = await cursor.toArray();
+            res.send(payments);
+        })
+        app.get('/myhistory/:email', async (req, res) => {
+            const email = req.params.email;
+            const filter ={email:email};
+            const cursor = paymentCollection.find(filter);
+            const result = await cursor.toArray();
+            res.send(result);
+        });
+        app.delete('/history/:id', async (req, res) => {
+            const id = req.params.id;
+            const filter ={_id:ObjectId(id)};
+            const result = await paymentCollection.deleteOne(filter);
             res.send(result);
         });
     }
