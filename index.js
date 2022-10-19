@@ -33,7 +33,7 @@ async function run (){
         const paymentCollection = database.collection('Payments');
         const messageCollection = database.collection('messages');
 
-        //orders collection and payment method
+        //orders collection
 
         app.get("/orders",async(req,res)=>{
             const orders= await ordersCollection.find().toArray();
