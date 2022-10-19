@@ -376,7 +376,9 @@ const client = new MongoClient(uri, { useNewUrlParser: true, useUnifiedTopology:
 
 
 app.get('/',(req,res)=>{
-    res.send('Hello World!')
-});
+    res.json({
+      hello:'hi!',
+    });
+  })
 
 app.listen(PORT, ()=>console.log(`server is running on Port ${PORT}`)) 
