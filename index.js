@@ -7,7 +7,7 @@ const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
 
 
 const app = express();
-const PORT = process.env.PORT || 4000;
+const PORT = process.env.PORT || 5000;
 
 
 //middleware/
@@ -33,7 +33,7 @@ async function run (){
         const paymentCollection = database.collection('Payments');
         const messageCollection = database.collection('messages');
 
-        //orders collection
+        //orders collection and payment method
 
         app.get("/orders",async(req,res)=>{
             const orders= await ordersCollection.find().toArray();
